@@ -21,8 +21,8 @@ dist-ssr
 # Claude AI
 .claude/
 
-# Temp screenshots
-*.png
+# Temp screenshots in project root
+/*.png
 
 # Editor directories and files
 .vscode/*
