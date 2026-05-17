@@ -4,56 +4,55 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-女王厨房 (Queen's Kitchen) — a mobile-first web app for a couple to manage dishes, plan meals, and showcase cooked meals. Single shared account with two-person labeling ("女王"/"保洁").
+女王厨房 (Queen's Kitchen) — mobile-first web app for a couple to manage dishes, plan meals, and showcase cooked meals. Single shared Supabase account with two-person labeling ("女王"/"保洁").
+
+**Live URL**: https://xjinliang.github.io/queen-kitchen/
 
 ## Commands
 
 ```bash
-npm run dev          # Start dev server (Vite HMR)
+npm run dev          # Dev server
 npm run build        # TypeScript check + production build
 npm run preview      # Preview production build
 ```
+
+## Deployment (GitHub Pages)
+
+1. `npm run build` produces `dist/`
+2. Copy `dist/index.html` to `dist/404.html` (SPA routing fallback)
+3. Push `dist/` contents to `gh-pages` branch:
+   ```
+   cp -r dist/* /tmp/gh-pages-deploy/ && cd /tmp/gh-pages-deploy
+   git add . && git commit -m "deploy" && git push origin gh-pages
+   ```
+4. Vite `base: '/queen-kitchen/'` and Router `basename="/queen-kitchen"` — must match repo name
+
+`.env` contains real Supabase keys (not committed). Vite embeds `import.meta.env.VITE_*` values at build time into the JS bundle.
 
 ## Architecture
 
 **Frontend**: React 19 + Vite + TypeScript + Tailwind CSS 4 + React Router v6 + lucide-react icons
 
-**Backend**: Supabase (`dlwwolfjtsojwhwfigbd.supabase.co`)
-- **Auth**: email/password (email confirmation manually handled)
-- **Database**: PostgreSQL with RLS + realtime subscriptions
-- **Storage**: `dish-images` bucket (public read, authenticated write)
-- Tables: `profiles`, `dishes`, `meal_plans`, `cooked_meals`
+**Backend**: Supabase (project `dlwwolfjtsojwhwfigbd.supabase.co`)
+- Auth: email/password, profile auto-created via DB trigger on `auth.users` insert
+- DB: PostgreSQL with RLS, all tables have `FOR ALL USING (auth.role() = 'authenticated')`
+- Storage: `dish-images` bucket, public read, authenticated write
+- Realtime: enabled on `dishes`, `meal_plans`, `cooked_meals`
+- Tables: `profiles`, `dishes`, `meal_plans`, `cooked_meals` (see `supabase/schema.sql`)
 
 ## Key patterns
 
-### Hooks data flow
-Every data table follows the same pattern: `useRealtime<T>(table, fetchFn)` → `useDishes()` / `useMealPlans()` / `useCookedMeals()`. The realtime hook fetches initial data then subscribes to INSERT/UPDATE/DELETE via Supabase channels. CRUD methods call `supabase.from(...)` directly then manually refresh.
+### Data hooks
+`useRealtime<T>(table, fetchFn)` → generic realtime subscription hook. Unique channel name per instance (counter-based). Fetches initial data then listens for INSERT/UPDATE/DELETE. `useDishes()`, `useMealPlans()`, `useCookedMeals()` are thin wrappers with table-specific CRUD.
 
 ### Auth
-`AuthContext` wraps the entire app. `AppLayout` checks `user` and redirects to `/login` if unauthenticated. Profile is auto-created by a database trigger on `auth.users` insert. The `useAuth()` hook exposes `user`, `profile`, `signIn`, `signUp`, `signOut`.
+`AuthContext` wraps the app. `AppLayout` redirects to `/login` if no `user`. `useAuth()` exposes `user`, `profile`, `signIn`, `signUp`, `signOut`. LoginPage handles both sign-in and sign-up via a toggle.
 
-### "谁做的" labeling
-Since both users share one account, `CookedMealForm` encodes who cooked via a `[XX做]` prefix in the notes field. `ShowcaseCard` parses this prefix for display. The two buttons are the user's nickname and "保洁" (hardcoded).
+### "谁做的" labeling (single-account workaround)
+`CookedMealForm` encodes who cooked via `[XX做]` prefix in notes. Two buttons: current nickname and "保洁". `ShowcaseCard` parses `[XX做]` prefix for display.
 
 ### Image upload
-`ImageUploader` component uploads to `supabase.storage.from('dish-images')`, generates path as `{folder}/{userId}/{timestamp}.{ext}`, returns public URL via `getPublicUrl()`.
+`ImageUploader` → `supabase.storage.from('dish-images').upload(path, file)` where path is `{folder}/{userId}/{timestamp}.{ext}`, then `getPublicUrl(path)`.
 
-## Routes
-
-| Path | Page | Notes |
-|------|------|-------|
-| `/login` | LoginPage | Redirects to `/order` if authenticated |
-| `/order` | OrderPage | Home page — date + meal type + dish selection with random picker |
-| `/library` | LibraryPage | Dish grid with category filter |
-| `/library/new` | DishFormPage | Add dish (name, category, difficulty, recipe, image, tags) |
-| `/library/:id` | DishDetailPage | View with edit/delete |
-| `/library/:id/edit` | DishFormPage | Edit mode |
-| `/showcase` | ShowcasePage | Cooked meal photo grid, long-press to delete |
-| `/showcase/new` | CookedMealFormPage | Record a cooked dish |
-| `/profile` | ProfilePage | Stats + sign out |
-
-## Environment variables
-
-Required in `.env` (not committed):
-- `VITE_SUPABASE_URL` — Supabase project URL
-- `VITE_SUPABASE_ANON_KEY` — Supabase publishable (anon) key
+### PWA
+`public/manifest.json` + `public/icon-192.png` + `public/icon-512.png` + `index.html` apple-touch-icon meta tags for "Add to Home Screen" on mobile.
