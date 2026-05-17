@@ -13,7 +13,7 @@ import ProfilePage from './pages/ProfilePage'
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/my-project">
       <AuthProvider>
         <ErrorBoundary>
         <Routes>

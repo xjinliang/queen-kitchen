@@ -55,13 +55,13 @@ export default function DishForm({ initial, onSubmit, loading }: Props) {
         <Select
           label="分类"
           value={category}
-          onChange={e => setCategory(e.target.value)}
+          onChange={e => setCategory(e.target.value as DishInsert['category'])}
           options={CATEGORIES.map(c => ({ value: c.value, label: c.label }))}
         />
         <Select
           label="难度"
           value={difficulty}
-          onChange={e => setDifficulty(e.target.value)}
+          onChange={e => setDifficulty(e.target.value as DishInsert['difficulty'])}
           options={DIFFICULTIES.map(d => ({ value: d.value, label: d.label }))}
         />
       </div>

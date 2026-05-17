@@ -10,7 +10,7 @@ interface Props {
 
 export default function ShowcaseCard({ meal, onLongPress }: Props) {
   const date = new Date(meal.cooked_date + 'T00:00:00')
-  const timerRef = useRef<ReturnType<typeof setTimeout>>()
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const cookMatch = meal.notes?.match(/^\[(.+?)做\]\s*/)
   const cookLabel = cookMatch ? cookMatch[1] : (meal.cook?.nickname || '某人')

@@ -15,7 +15,7 @@ export default function RandomPicker({ open, onClose, onConfirm, getRandomDish }
   const [rolling, setRolling] = useState(false)
   const [displayDish, setDisplayDish] = useState<Dish | null>(null)
   const [result, setResult] = useState<Dish | null>(null)
-  const timerRef = useRef<ReturnType<typeof setInterval>>()
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   useEffect(() => {
     if (open) {

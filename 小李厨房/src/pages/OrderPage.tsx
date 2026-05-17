@@ -20,7 +20,7 @@ export default function OrderPage() {
   const [showRandom, setShowRandom] = useState(false)
 
   const dateStr = toDateString(date)
-  const { plans, loading, addDish, removeDish, isDishSelected, getRandomDish } = useMealPlans(dateStr, mealType)
+  const { plans, loading, addDish, removeDish, getRandomDish } = useMealPlans(dateStr, mealType)
 
   const selectedIds = plans.map(p => p.dish_id)
 
