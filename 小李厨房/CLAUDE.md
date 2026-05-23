@@ -18,12 +18,30 @@ npm run preview      # Preview production build
 
 ## Deployment (GitHub Pages)
 
-1. `npm run build` produces `dist/`
+**IMPORTANT**: Repo root is `my-project/`, source code is in `小李厨房/`. GitHub Pages serves from the root of the `gh-pages` branch, so dist files must go to the root, NOT `小李厨房/dist/`.
+
+1. `npm run build` produces `小李厨房/dist/`
 2. Copy `dist/index.html` to `dist/404.html` (SPA routing fallback)
-3. Push `dist/` contents to `gh-pages` branch:
-   ```
-   cp -r dist/* /tmp/gh-pages-deploy/ && cd /tmp/gh-pages-deploy
-   git add . && git commit -m "deploy" && git push origin gh-pages
+3. Deploy to gh-pages branch root:
+   ```bash
+   cd "C:\Users\29972\Desktop\my-project"
+   git checkout gh-pages
+   # Remove old root files (keep .git, 小李厨房/, etc.)
+   rm -f index.html 404.html manifest.json icon-192.png icon-512.png
+   rm -rf assets
+   # Copy new dist to root
+   cp "小李厨房/dist/index.html" .
+   cp "小李厨房/dist/404.html" .
+   cp "小李厨房/dist/manifest.json" .
+   cp "小李厨房/dist/icon-192.png" .
+   cp "小李厨房/dist/icon-512.png" .
+   cp -r "小李厨房/dist/assets" .
+   # Clean up wrong-location dist
+   git rm -r "小李厨房/dist/" 2>/dev/null; true
+   # Stage and push
+   git add index.html 404.html manifest.json icon-192.png icon-512.png assets/
+   git commit -m "deploy" && git push origin gh-pages
+   git checkout master
    ```
 4. Vite `base: '/queen-kitchen/'` and Router `basename="/queen-kitchen"` — must match repo name
 
