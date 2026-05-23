@@ -77,7 +77,7 @@ export default function RandomPicker({ open, onClose, onConfirm, getRandomDish }
         <div className="w-full bg-warm-50 rounded-2xl p-8 mb-6 flex flex-col items-center gap-3">
           <div className={`text-5xl transition-all ${rolling ? 'scale-110' : 'scale-100'}`}>
             {displayDish?.image_url ? (
-              <img src={displayDish.image_url} alt="" className="w-24 h-24 rounded-xl object-cover" />
+              <img src={displayDish.image_url} alt="" className="w-24 h-24 rounded-xl object-cover" loading="lazy" />
             ) : (
               '🎲'
             )}

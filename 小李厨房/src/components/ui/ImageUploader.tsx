@@ -9,6 +9,44 @@ interface Props {
   folder?: 'dishes' | 'cooked'
 }
 
+function compressImage(file: File, maxWidth = 1200, quality = 0.75): Promise<File> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      let { width, height } = img
+      if (width <= maxWidth && height <= maxWidth) {
+        resolve(file)
+        return
+      }
+      if (width > height) {
+        height = Math.round((height / width) * maxWidth)
+        width = maxWidth
+      } else {
+        width = Math.round((width / height) * maxWidth)
+        height = maxWidth
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')!
+      ctx.drawImage(img, 0, 0, width, height)
+      canvas.toBlob(
+        blob => {
+          if (!blob) { resolve(file); return }
+          const compressed = new File([blob], file.name, { type: 'image/jpeg' })
+          resolve(compressed)
+        },
+        'image/jpeg',
+        quality,
+      )
+    }
+    img.onerror = () => resolve(file)
+    img.src = url
+  })
+}
+
 export default function ImageUploader({ onUpload, currentUrl, folder = 'dishes' }: Props) {
   const { user } = useAuth()
   const inputRef = useRef<HTMLInputElement>(null)
@@ -17,8 +55,8 @@ export default function ImageUploader({ onUpload, currentUrl, folder = 'dishes' 
   const [error, setError] = useState('')
 
   const handleFile = async (file: File) => {
-    if (file.size > 5 * 1024 * 1024) {
-      setError('图片不能超过 5MB')
+    if (file.size > 10 * 1024 * 1024) {
+      setError('图片不能超过 10MB')
       return
     }
 
@@ -26,12 +64,12 @@ export default function ImageUploader({ onUpload, currentUrl, folder = 'dishes' 
     setUploading(true)
 
     try {
-      const ext = file.name.split('.').pop()
-      const path = `${folder}/${user!.id}/${Date.now()}.${ext}`
+      const compressed = await compressImage(file)
+      const path = `${folder}/${user!.id}/${Date.now()}.jpg`
 
       const { error: uploadError } = await supabase.storage
         .from('dish-images')
-        .upload(path, file)
+        .upload(path, compressed)
 
       if (uploadError) {
         setError(uploadError.message || '上传失败')

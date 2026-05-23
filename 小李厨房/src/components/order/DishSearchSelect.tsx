@@ -54,7 +54,7 @@ export default function DishSearchSelect({ open, onClose, onSelect, selectedIds 
               >
                 <span className="text-xl shrink-0">
                   {dish.image_url ? (
-                    <img src={dish.image_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                    <img src={dish.image_url} alt="" className="w-10 h-10 rounded-lg object-cover" loading="lazy" />
                   ) : (
                     '🥘'
                   )}

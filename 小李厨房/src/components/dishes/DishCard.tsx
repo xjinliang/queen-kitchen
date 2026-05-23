@@ -15,7 +15,7 @@ export default function DishCard({ dish, onClick }: { dish: Dish; onClick: () =>
     >
       <div className="aspect-[4/3] bg-warm-100 flex items-center justify-center overflow-hidden">
         {dish.image_url ? (
-          <img src={dish.image_url} alt={dish.name} className="w-full h-full object-cover" />
+          <img src={dish.image_url} alt={dish.name} className="w-full h-full object-cover" loading="lazy" />
         ) : (
           <span className="text-3xl">🥘</span>
         )}

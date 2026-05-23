@@ -75,7 +75,7 @@ export default function DishDetailPage() {
       {/* Image */}
       <div className="rounded-2xl overflow-hidden bg-warm-100 mb-4">
         {dish.image_url ? (
-          <img src={dish.image_url} alt={dish.name} className="w-full aspect-[4/3] object-cover" />
+          <img src={dish.image_url} alt={dish.name} className="w-full aspect-[4/3] object-cover" loading="lazy" />
         ) : (
           <div className="w-full aspect-[4/3] flex items-center justify-center text-6xl">
             🥘

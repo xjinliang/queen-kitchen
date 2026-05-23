@@ -42,7 +42,7 @@ export default function ShowcaseCard({ meal, onLongPress }: Props) {
       onMouseLeave={onTouchEnd}
     >
       <div className="aspect-square bg-warm-100 overflow-hidden">
-        <img src={meal.photo_url} alt={meal.dish?.name} className="w-full h-full object-cover" />
+        <img src={meal.photo_url} alt={meal.dish?.name} className="w-full h-full object-cover" loading="lazy" />
       </div>
       <div className="p-3">
         <h3 className="font-medium text-gray-800 text-sm">{meal.dish?.name || '未知菜品'}</h3>

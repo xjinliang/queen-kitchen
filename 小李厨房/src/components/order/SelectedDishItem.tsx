@@ -11,7 +11,7 @@ export default function SelectedDishItem({ plan, onRemove }: Props) {
     <div className="flex items-center gap-3 bg-white rounded-xl border border-gray-100 p-3">
       <div className="w-12 h-12 rounded-lg bg-warm-100 flex items-center justify-center text-xl shrink-0 overflow-hidden">
         {plan.dish?.image_url ? (
-          <img src={plan.dish.image_url} alt="" className="w-full h-full object-cover" />
+          <img src={plan.dish.image_url} alt="" className="w-full h-full object-cover" loading="lazy" />
         ) : (
           '🥘'
         )}
