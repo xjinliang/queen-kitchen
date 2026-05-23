@@ -12,9 +12,12 @@ export default function InstallPrompt() {
   const [deferred, setDeferred] = useState<any>(null)
 
   useEffect(() => {
-    // Check if already in standalone mode
+    // Already in standalone mode (added to home screen) — don't show
     if (window.matchMedia('(display-mode: standalone)').matches) return
-    if (navigator.standalone) return
+    if ((navigator as any).standalone) return
+
+    // Already dismissed permanently
+    if (localStorage.getItem('install-dismissed')) return
 
     // Listen for Chrome beforeinstallprompt
     const handler = (e: Event) => {
@@ -24,13 +27,9 @@ export default function InstallPrompt() {
     }
     window.addEventListener('beforeinstallprompt', handler)
 
-    // Fallback: show after 3 seconds on Android (Huawei may not fire beforeinstallprompt)
+    // Fallback: show after 3 seconds on Android
     const isAndroid = /android/i.test(navigator.userAgent)
-    const timer = isAndroid ? setTimeout(() => {
-      if (!sessionStorage.getItem('install-dismissed')) {
-        setShow(true)
-      }
-    }, 3000) : undefined
+    const timer = isAndroid ? setTimeout(() => setShow(true), 3000) : undefined
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler)
@@ -51,7 +50,7 @@ export default function InstallPrompt() {
 
   const handleDismiss = () => {
     setShow(false)
-    sessionStorage.setItem('install-dismissed', '1')
+    localStorage.setItem('install-dismissed', '1')
   }
 
   if (!show) return null
