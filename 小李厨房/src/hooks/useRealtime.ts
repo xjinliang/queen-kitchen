@@ -4,13 +4,17 @@ import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/
 
 let counter = 0
 
+// Global cache so data survives component unmount/remount during tab switches
+const globalCache = new Map<string, { data: any[]; timestamp: number }>()
+
 export function useRealtime<T extends { id: string }>(
   table: string,
   fetchFn: () => Promise<T[]>,
   deps: unknown[] = []
 ) {
-  const [data, setData] = useState<T[]>([])
-  const [loading, setLoading] = useState(true)
+  const cached = globalCache.get(table)
+  const [data, setData] = useState<T[]>(cached?.data || [])
+  const [loading, setLoading] = useState(!cached)
   const [error, setError] = useState<Error | null>(null)
   const channelRef = useRef<RealtimeChannel | null>(null)
   const unmounted = useRef(false)
@@ -19,6 +23,7 @@ export function useRealtime<T extends { id: string }>(
     try {
       setLoading(true)
       const items = await fetchFn()
+      globalCache.set(table, { data: items, timestamp: Date.now() })
       if (!unmounted.current) {
         setData(items)
         setError(null)
@@ -54,18 +59,21 @@ export function useRealtime<T extends { id: string }>(
         'postgres_changes' as any,
         { event: '*', schema: 'public', table },
         (payload: RealtimePostgresChangesPayload<T>) => {
-          if (payload.eventType === 'INSERT') {
-            setData(prev => {
+          setData(prev => {
+            let next: T[]
+            if (payload.eventType === 'INSERT') {
               if (prev.some(item => item.id === payload.new.id)) return prev
-              return [...prev, payload.new as T]
-            })
-          } else if (payload.eventType === 'UPDATE') {
-            setData(prev =>
-              prev.map(item => (item.id === payload.new.id ? (payload.new as T) : item))
-            )
-          } else if (payload.eventType === 'DELETE') {
-            setData(prev => prev.filter(item => item.id !== payload.old.id))
-          }
+              next = [...prev, payload.new as T]
+            } else if (payload.eventType === 'UPDATE') {
+              next = prev.map(item => (item.id === payload.new.id ? (payload.new as T) : item))
+            } else if (payload.eventType === 'DELETE') {
+              next = prev.filter(item => item.id !== payload.old.id)
+            } else {
+              return prev
+            }
+            globalCache.set(table, { data: next, timestamp: Date.now() })
+            return next
+          })
         }
       )
       .subscribe()
