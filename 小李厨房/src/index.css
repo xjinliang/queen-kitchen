@@ -20,6 +20,8 @@
 
 * {
   -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
 }
 
 body {
@@ -29,15 +31,20 @@ body {
   color: #1a1a1a;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 #root {
   min-height: 100dvh;
+  min-height: 100vh;
 }
 
-/* Safe area padding for iOS */
+/* Safe area padding for iOS notch + Android gesture bar */
 .safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+  padding-bottom: max(env(safe-area-inset-bottom, 16px), 16px);
 }
 
 /* Slide up animation for modals */
